@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bloom Catcher</title>
+  <style>
+    :root {
+      font-family: "Poppins", sans-serif;
+      color: #ffeedd;
+      background: radial-gradient(circle at top, #ffe6f7, #ffd1dc 60%, #ffb3c6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg, #ffe6f7);
+      overflow: hidden;
+    }
+
+    .game-shell {
+      width: min(90vmin, 520px);
+      height: min(90vmin, 520px);
+      position: relative;
+      border-radius: 36px;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 25px 50px rgba(255, 120, 160, 0.35);
+      overflow: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      color: #fff4f0;
+      text-shadow: 0 8px 24px rgba(255, 118, 175, 0.6);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+    }
+
+    p.subtitle {
+      font-size: 0.95rem;
+      opacity: 0.8;
+    }
+
+    .scoreboard {
+      position: absolute;
+      top: 1rem;
+      right: 1.2rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #5d1049;
+    }
+
+    #playground {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .petal {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 40% 60% 70% 30%;
+      background: radial-gradient(circle at 30% 30%, #ffe4f4, #ff7aa2);
+      box-shadow: 0 10px 20px rgba(255, 82, 148, 0.3);
+      transition: transform 0.2s ease, filter 0.2s ease;
+      cursor: pointer;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .petal:hover {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 999px;
+      opacity: 0.9;
+      pointer-events: none;
+      animation: twinkle 1.5s ease-in-out infinite;
+    }
+
+    button {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.75rem 1.8rem;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(120deg, #ff8fb7, #ff5d8f);
+      box-shadow: 0 15px 30px rgba(255, 93, 143, 0.5);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 18px 30px rgba(255, 93, 143, 0.65);
+    }
+
+    button:active {
+      transform: translateX(-50%) scale(0.97);
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+
+    @keyframes twinkle {
+      0%, 100% {
+        opacity: 0.1;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <header>
+      <h1>Bloom Catcher</h1>
+      <p class="subtitle">Tap kelopak yang bersinar sebelum memudar 🌸</p>
+    </header>
+    <div class="scoreboard">Skor: <span id="score">0</span></div>
+    <div id="playground"></div>
+    <button id="restart">Mulai Ulang</button>
+  </div>
+
+  <script>
+    const playground = document.getElementById("playground");
+    const scoreLabel = document.getElementById("score");
+    const restartBtn = document.getElementById("restart");
+
+    let score = 0;
+    let activePetal = null;
+    let gameInterval;
+
+    const random = (min, max) => Math.random() * (max - min) + min;
+
+    function createPetal() {
+      const petal = document.createElement("div");
+      petal.className = "petal";
+      petal.style.left = random(10, 80) + "%";
+      petal.style.top = random(20, 80) + "%";
+      petal.style.animationDuration = random(3.5, 5) + "s";
+
+      const sparkleCount = 4 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < sparkleCount; i++) {
+        const sparkle = document.createElement("span");
+        sparkle.className = "sparkle";
+        sparkle.style.left = random(-10, 40) + "px";
+        sparkle.style.top = random(-10, 40) + "px";
+        sparkle.style.animationDelay = random(0, 1.2) + "s";
+        petal.appendChild(sparkle);
+      }
+
+      petal.addEventListener("click", () => {
+        score += 10;
+        scoreLabel.textContent = score;
+        petal.remove();
+        spawnPetal();
+      });
+
+      setTimeout(() => {
+        petal.style.opacity = 0;
+        setTimeout(() => petal.remove(), 400);
+      }, 1800);
+
+      return petal;
+    }
+
+    function spawnPetal() {
+      if (activePetal) {
+        activePetal.remove();
+      }
+      activePetal = createPetal();
+      playground.appendChild(activePetal);
+    }
+
+    function startGame() {
+      score = 0;
+      scoreLabel.textContent = score;
+      playground.innerHTML = "";
+      spawnPetal();
+      clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        if (score > 0) score -= 2;
+        scoreLabel.textContent = score;
+        spawnPetal();
+      }, 2200);
+    }
+
+    restartBtn.addEventListener("click", startGame);
+    startGame();
+  </script>
+</body>
+</html>
